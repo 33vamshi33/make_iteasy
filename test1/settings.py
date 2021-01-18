@@ -27,7 +27,7 @@ SECRET_KEY = '(qe+grr0=o#q%juoo*z%xnv$%v1d9afaqok=#ay-pxyu0tc(5e'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['makeit-easy.herokuapp.com/','127.0.0.1']
+ALLOWED_HOSTS = ['makeit-easy.herokuapp.com','127.0.0.1']
 AUTH_USER_MODEL = 'app1.User'
 
 # Application definition
