@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="jumbotron">
+    <h1>hey {{ user.username}}</h1>
+    <br>
+    <br>
+    {% if psize %}
+      <ul class="list-group">
+        <li class="list-group-item"><h3>Pending requests are</h3></li>
+        {% for r in pendingrequests  %}
+        <li class="list-group-item">
+          <form action="" method="POST">
+            {% csrf_token %}
+            <h4 style="float: left;">From : {{r.customer.user.username}}</h4>
+            <input type="hidden" name="connection" value="{{r.pk}}">
+            <input type="submit" class="btn btn-warning" name="reject" value="reject" style="float: right; margin-left:5px;">
+            <input type="submit" class="btn btn-success" name="accept" value="accept" style="float: right;margin-left:5px;margin-right:5px;">
+            
+          </form>
+          <br>
+          <br>
+          
+          <h5>customer is {{r.customer}}  requested at {{r.created_time}}       </h5>
+          <h5> About:-{{r.description}}</h5>
+        </li>
+        
+        
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endblock content %}

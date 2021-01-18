@@ -1,0 +1,48 @@
+
+{% if user.is_customer %}
+  {% for m in unreadconnections %}
+      
+    {% ifequal m.customer_status "order pending" %}
+    <a href="{% url 'app1:customer_pendingorders' %}" class="dropdown-item">Pending order To {{m.broker}} :- {{m.description}} </a>
+    {% endifequal %}
+    {% ifequal m.customer_status "order accepted" %}
+    <a href="{% url 'app1:customer_acceptedorders' %}" class="dropdown-item">Accepted order To {{m.broker}} :- {{m.description}} </a>
+    {% endifequal %}
+    {% ifequal m.customer_status "order rejected" %}
+    <a href="{% url 'app1:customer_rejectedorders' %}" class="dropdown-item">Rejected order To {{m.broker}} :- {{m.description}} </a>
+    {% endifequal %}
+    {% ifequal m.customer_status "order completed" %}
+    <a href="{% url 'app1:customer_completedorders' %}" class="dropdown-item">Completed order To {{m.broker}} :- {{m.description}} </a>
+    {% endifequal %}
+
+  <!-- <a href="{% url 'app1:customer_orders' %}" class="dropdown-item">hii </a> -->
+  {% endfor %}
+  {% for m in unreadmessages  %}
+    <a href="{% url 'app1:customer_chat' pk=m.broker.pk %}" class="dropdown-item">From {{m.broker}}:- {{m.message}}</a>
+  {% endfor %}
+{% endif %}
+
+{% if user.is_broker %}
+{% for m in unreadconnections %}
+      
+    {% ifequal m.broker_status "request pending" %}
+    <a href="{% url 'app1:broker_pendingrequests' %}" class="dropdown-item">Pending request from {{m.customer}} :- {{m.description}} </a>
+    {% endifequal %}
+    {% ifequal m.broker_status "request accepted" %}
+    <a href="{% url 'app1:broker_acceptedrequests' %}" class="dropdown-item">Accepted request from {{m.customer}} :- {{m.description}} </a>
+    {% endifequal %}
+    {% ifequal m.broker_status "request rejected" %}
+    <a href="{% url 'app1:broker_rejectedrequests' %}" class="dropdown-item">Rejected request from {{m.customer}} :- {{m.description}} </a>
+    {% endifequal %}
+    {% ifequal m.broker_status "request completed" %}
+    <a href="{% url 'app1:broker_completedrequests' %}" class="dropdown-item">Completed request from {{m.customer}} :- {{m.description}} </a>
+    {% endifequal %}
+
+  <!-- <a href="{% url 'app1:customer_orders' %}" class="dropdown-item">hii </a> -->
+  {% endfor %}
+  {% for m in unreadmessages  %}
+    <a href="{% url 'app1:broker_chat' pk=m.customer.pk %}" class="dropdown-item">From {{m.customer}}:- {{m.message}}</a>
+  {% endfor %}
+{% endif %}
+  
+  

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load crispy_forms_tags %}
+{% block content %}
+  <div class="jumbotron">
+    
+    {% if user.is_broker %}
+    <h1>hey {{ user.username}}</h1>
+    {% endif %}
+    <br>
+    <h3>Average rating is {{avgrating|floatformat:2|intcomma}}</h3>
+    <br>
+    {% if rsize %}
+      <ul class="list-group">
+        <li class="list-group-item"><h3>Reviews are</h3></li>
+        {% for c in reviews  %}
+        <li class="list-group-item">
+          <h3>{{c.rating}}</h3>
+          
+          {% if user.is_customer %}
+          <h4>By  {{c.customer}}</h4>
+          {% endif %}
+            
+          <h6>Posted on {{c.created_time}}</h6>
+          <h4>{{c.description}}</h4>
+        </li>
+        
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endblock content %}

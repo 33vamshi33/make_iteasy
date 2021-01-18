@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+  <div class="jumbotron">
+    <h1>plz login customer</h1>
+    <br>
+    <form action="" method="post">
+      {% csrf_token %}
+      {{loginform|crispy}}
+      <br>
+      <input type="submit" class="btn btn-success btn-large" value="login">
+    </form>
+    <br><br>
+    <h5>didnt have account signup here customer</h5>
+    <a href="{% url 'app1:customer_signup' %}" class="btn btn-secondary">signup</a>
+  </div>
+{% endblock content %}

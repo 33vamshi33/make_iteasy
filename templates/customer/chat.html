@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+  <div class="jumbotron">
+    <h1> Hey  mr {{user.username}}</h1>
+    <br>
+    <br>
+    
+    {% if msize %}
+      <ul class="list-group">
+        <li class="list-group-item"><h3>Messages are:</h3></li>
+        {% for o in messages %}
+          
+          {% if o.flag %}
+          <li class="list-group-item" style="background-color: cadetblue; text-align:right">
+            <h5>{{o.message}}</h5>
+            <!-- <p>at {{o.timestamp}}</p> -->
+          </li>
+          {% else %}
+          <li class="list-group-item" style="background-color:aliceblue">
+            <h5>{{o.message}}</h5>
+            <!-- <p>at {{o.timestamp}}</p> -->
+          </li>
+          {% endif %}
+        {% endfor %}
+        <br>
+      </ul>
+    {% endif %}
+    <form action="" method="post">
+      {% csrf_token %}
+      <input type="text" name="message" id="" class="form-control">
+      <input type="submit" value="send" name="submit" class="btn btn-primary" style="float: right;">
+    </form>
+  </div>
+  {% endblock content %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="jumbotron">
+  <h1>hey {{user.username}}</h1> 
+  <br>
+  <br>
+  <h3>select available days in this week</h3>
+  <br>
+  <form  method="POST">
+    {% csrf_token %}
+    
+    {% if 0 in mylist %} <input checked type="checkbox" name="0">
+    {% else %} <input type="checkbox" name="0">
+    {% endif %}
+    <label for="0" class="" style="margin-right: 10px;">Monday</label>
+
+    {% if 1 in mylist %} <input checked type="checkbox"  name="1">
+    {% else %} <input type="checkbox"  name="1">
+    {% endif %}
+    <label for="1" style="margin-right: 10px;">Tuesday</label>
+
+    {% if 2 in mylist %} <input checked type="checkbox" name="2" value="Wednesday">
+    {% else %} <input type="checkbox" name="2" value="Wednesday">
+    {% endif %}
+    <label for="2" style="margin-right: 10px;">Wednesday</label>
+
+    {% if 3 in mylist  %} <input checked type="checkbox"name="3" value="Thrusday">
+    {% else %} <input type="checkbox"name="3" value="Thrusday">
+    {% endif %}
+    <label for="3" style="margin-right: 10px;">Thursday</label>
+
+    {% if 4 in mylist %} <input checked type="checkbox"  name="4" value="Friday">
+    {% else %} <input type="checkbox"  name="4" value="Friday">
+    {% endif %}
+    <label for="4" style="margin-right: 10px;">Friday</label>
+
+    {% if 5 in mylist %} <input checked type="checkbox" name="5" value="Saturday">
+    {% else %} <input type="checkbox" name="5" value="Saturday">
+    {% endif %}
+    <label for="5" style="margin-right: 10px;">Saturday</label>
+
+    {% if 6 in mylist %} <input checked type="checkbox"  name="6" value="Sunday">
+    {% else %} <input type="checkbox"  name="6" value="Sunday">
+    {% endif %}
+    <label for="6" style="margin-right: 10px;">Sunday</label>
+
+    <input type="submit" class="btn btn-primary" value="Save" name="submit">
+  </form>
+</div>
+{% endblock content %}

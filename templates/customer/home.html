@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="jumbotron">
+  <h1 style="float: left;">Hey customer {{customer.username}} </h1>
+  
+
+  <br><br><br>
+  <form action="" method="POST">
+    {% csrf_token %}
+    <label for="department" style="float: left;margin-left:10px;">department:</label>
+    <input type="text" name="department" placeholder="Enter department" style="float: left;margin-left:10px;">
+    <label for="location" style="float: left; margin-left:30px;">Location </label>
+    <input type="location" name="location" style="float: left;margin-left:10px;">
+    <div class=" btn-group dropright" style="margin-left: 30px; float:left">
+      <br>
+      <button  type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"  role="button" aria-haspopup="true" aria-expanded="false"> Days </button>
+      <div class="dropdown-menu dropdown-menu-right">
+        <ul>
+          <li class="dropdown-item " >
+            <input type="checkbox" name="0">
+            <label for="0" class="">Monday</label>
+          </li>
+          <li class="dropdown-item">
+            <input type="checkbox"  name="1">
+            <label for="1">Tuesday</label>
+          </li>
+          <li class="dropdown-item">
+            <input type="checkbox" name="2" value="Wednesday">
+            <label for="2">Wednesday</label>
+          </li>
+          <li class="dropdown-item">
+            <input type="checkbox"name="3" value="Thrusday">
+            <label for="3">Thursday</label>
+          </li>
+          <li class="dropdown-item">
+            <input type="checkbox"  name="4" value="Friday">
+            <label for="4">Friday</label>
+          </li>
+          <li class="dropdown-item">
+            <input type="checkbox" name="5" value="Saturday">
+            <label for="5">Saturday</label>
+          </li>
+          <li class="dropdown-item">
+            <input type="checkbox"  name="6" value="Sunday">
+            <label for="6">Sunday</label>
+          </li>
+        </ul>
+      </div>
+    </div>
+    
+    <input type="submit" class="btn btn-primary" value="search" style="float: right; margin-left:20px">
+    <br>
+  </form>
+<br><br>
+      <ul class="list-group">
+        {% for b in brokers %}
+        <li class="list-group-item">
+          <form action="" method="POST">
+            {% csrf_token %}
+            
+            <a href="{% url 'app1:broker_reviews' pk=b.user.pk %}" style="color: black;">{{b.user.username}}  Rating is {{b.average_rating|floatformat:2|intcomma}}</a>
+            
+            <br>
+            <input type="hidden" value="{{b}}" name="broker">
+            <br>
+            <label for="description">Description</label>
+            <input type="text" name="description" placeholder="enter a short note here"> 
+            <input type="submit" class="btn btn-success" value="connect" name="connect" style="margin: 5px; float:right">
+            
+            
+            <br>
+            </form>
+        </li>
+        
+      {% endfor %}
+      </ul>
+      
+    
+    
+  <br>
+  <br>
+  <br>
+  
+</div>
+
+{% endblock content %}

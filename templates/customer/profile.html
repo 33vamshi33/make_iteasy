@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+  <div class="jumbotron">
+    <h3>change your details here</h3>
+    <br>
+    {% if user.picture %}
+    <img src="{{user.picture.url}}" alt="customer picture" style="height: 300px;width:auto;">
+    {% endif %}
+    <br>
+    <br>
+    <h4>leave blank for no changes</h4>
+    
+    <br>
+    <form action="" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{pictureform|crispy}}
+      <br>
+      <br>
+      <label for="username">username:</label>
+      <input type="text" name="username" placeholder="{{customer.user.username}}">
+      <br>
+      <br>
+      <label for="password">password:</label>
+      <input type="password" name="password" placeholder="Enter new password">
+      <br>
+      <br>
+      <label for="email">E-mail:</label>
+      <input type="text" name="email" placeholder="{{customer.user.email}}">
+      <br>
+      <br>
+      <label for="phonenumber">phone number:</label>
+      <input type="text" name="phonenumber" placeholder="{{customer.user.phone_number}}">
+      <br>
+      <br>
+      <input type="submit" class="btn btn-success btn-large" value="save changes">
+    </form>
+  </div>
+{% endblock content %}
+  

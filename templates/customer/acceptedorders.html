@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="jumbotron">
+    <h1>hey customer mr {{ user.username}}</h1>
+    <br>
+    <br>
+    {% if asize %}
+    <ul class="list-group">
+      <li class="list-group-item"><h3>Accepted orders are:</h3></li>
+      {% for o in acceptedorders %}
+        <li class="list-group-item">
+          <h5> To {{o.broker}}  requested at {{o.created_time}}</h5>
+          <h6>order accepted at {{o.modified_time}}</h6>
+          <h5>About:- {{o.description}}</h5>
+          <h5>You can also chat here with {{o.broker}}</h5> 
+          <a href="{% url 'app1:customer_chat' pk=o.broker.pk %}" class="btn btn-primary" style="float: right;">Chat</a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+{% endblock content %}
+  

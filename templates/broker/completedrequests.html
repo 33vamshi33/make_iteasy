@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="jumbotron">
+    <h1>hey  {{ user.username}}</h1>
+    <br>
+    <br>
+    {% if csize %}
+      <ul class="list-group">
+        <li class="list-group-item"><h3>Completed requests are</h3></li>
+        {% for c in completedrequests  %}
+        <li class="list-group-item">
+          <h4>From : {{c.customer.user.username}} which was created at {{c.created_time}}</h4>
+          <h4>{{c.description}}</h4>
+          <h5>completed on {{c.modified_time}}  </h5>
+          <h5> About :- {{r.description}}</h5>
+        </li>
+        
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endblock content %}
