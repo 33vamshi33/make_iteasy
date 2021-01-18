@@ -65,7 +65,7 @@ def customerdetail(request):
                 subject="Hey"+ newconnection.broker.user.username +"! a new request from a customer that is  "+newconnection.description
                 body=f"makeiteasy helps it really helps"
                 receiverlist=[newconnection.broker.user.email,]
-                send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+                # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
                 newconnection.save()
             return redirect(reverse('app1:customer_pendingorders'))
 
@@ -161,7 +161,7 @@ def customersignup(request):
             subject="thanks for registering  with makeiteasy"
             body=f"makeiteasy helps it really helps"
             receiverlist=[user.email,]
-            send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
             registered=True
         else:
             print(user_form.errors)
@@ -332,7 +332,7 @@ def brokerrequests(request):
             subject="Yahoo! your order is accepted"
             body=f"makeiteasy helps, it really helps"
             receiverlist=[presentconnection.customer.user.email,]
-            send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
             presentconnection.save()
 
             # return render(request,"broker/requests.html",context=context)
@@ -343,7 +343,7 @@ def brokerrequests(request):
             subject="Sorry! your order has been rejected"
             body=f"makeiteasy helps it really helps"
             receiverlist=[presentconnection.customer.user.email,]
-            send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
             presentconnection.save()
             # return render(request,"broker/requests.html",context=context)
         elif "completed" in request.POST and presentconnection is not None:
@@ -353,7 +353,7 @@ def brokerrequests(request):
             subject="Hurray! your order is completed"
             body=f"makeiteasy helps it really helps"
             receiverlist=[presentconnection.customer.user.email,]
-            send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
             presentconnection.save()
         else:
             pass
@@ -396,7 +396,7 @@ def brokerpendingrequests(request):
             subject="Yahoo! your order is accepted"
             body=f"makeiteasy helps, it really helps"
             receiverlist=[presentconnection.customer.user.email,]
-            send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
             presentconnection.save()
             return redirect(reverse("app1:broker_acceptedrequests"))
 
@@ -408,7 +408,7 @@ def brokerpendingrequests(request):
             subject="Sorry! your order has been rejected"
             body=f"makeiteasy helps it really helps"
             receiverlist=[presentconnection.customer.user.email,]
-            send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
             presentconnection.save()
             return redirect(reverse("app1:broker_rejectedrequests"))
 
@@ -440,7 +440,7 @@ def brokeracceptedrequests(request):
                 subject="Hurray! your order is completed"
                 body=f"makeiteasy helps it really helps"
                 receiverlist=[presentconnection.customer.user.email,]
-                send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+                # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
                 presentconnection.save()
     acceptedrequests=connection.objects.filter(broker=presentbroker,broker_status="request accepted")
     acceptedrequests.update(is_brokerread=True)
@@ -483,7 +483,7 @@ def brokerrejectedrequests(request):
             subject="Yahoo! your order is accepted"
             body=f"makeiteasy helps, it really helps"
             receiverlist=[presentconnection.customer.user.email,]
-            send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
             presentconnection.save()
 
     rejectedrequests=connection.objects.filter(broker=presentbroker,broker_status="request rejected")
