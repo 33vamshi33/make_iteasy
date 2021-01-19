@@ -8,7 +8,7 @@
     <title>workiteasy</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap CSS -->
     <!-- CSS only -->
@@ -31,7 +31,7 @@
       {% if user.is_customer %}
         <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
           <a class="navbar-brand" href="{% url 'app1:customer_home' %}">HOME</a>
-          <div class="collapse navbar-collapse" id="collapsibleNavId">
+          <div class="collapsex navbar-collapsex" id="collapsibleNavId">
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
               <li class="nav-item ">
                 <a class="nav-link" href="{% url 'app1:customer_profile' %}">Your profile</a>
@@ -67,7 +67,7 @@
       {% if user.is_broker %}
         <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
           <a class="navbar-brand" href="{% url 'app1:broker_home' %}">Home</a>
-          <div class="collapse navbar-collapse" id="collapsibleNavId">
+          <div class="collapsex navbar-collapsex" id="collapsibleNavId">
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
               <li class="nav-item ">
                 <a class="nav-link" href="{% url 'app1:broker_profile' %}">Your profile</a>
@@ -106,7 +106,7 @@
     {% else %}
       <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
         <a class="navbar-brand" href="{% url 'app1:homepage' %}">Workiteasy</a>
-        <div class="collapse navbar-collapse" id="collapsibleNavId">
+        <div class="collapsex navbar-collapsex" id="collapsibleNavId">
           <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
             <li class="nav-item ">
               <a class="nav-link" href="#">About us</a>

@@ -519,12 +519,10 @@ def customerprofile(request):
         picture_form=userprofileform(request.POST,request.FILES)
 
         if picture_form.is_valid() and 'picture' in request.FILES :
-            print("in it")
             user.picture=request.FILES['picture']
         user.save()
         customer.user=user
         customer.save()
-        print("completed")
         return redirect(reverse("app1:customer_home"))
     customer=Customer.objects.get(user=request.user)
     unreadmessages=Message.objects.filter(customer__user=request.user,is_customerread=False)
