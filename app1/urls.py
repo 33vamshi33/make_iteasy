@@ -1,8 +1,13 @@
-from django.urls import path
+from django.urls import path, include # Added include
 from app1.views import (homepage,customerdetail,customerlogin,customersignup,customerlogout,customerorders,customerreview,customerchat,
                         customerprofile,customeracceptedorders,customercompletedorders,customerpendingorders,customerrejectedorders,
+                        report_dispute,
                         brokerdetail,brokerlogin,brokersignup,brokerlogout,brokerrequests,brokerprofile,brokerreviews,brokerchat,
-                        brokeracceptedrequests,brokercompletedrequests,brokerpendingrequests,brokerrejectedrequests)
+                        brokeracceptedrequests,brokercompletedrequests,brokerpendingrequests,brokerrejectedrequests,
+                        # Blog views
+                        BlogPostListView, BlogPostDetailView, BlogPostCreateView, BlogPostUpdateView,
+                        # Payment views
+                        create_checkout_session, payment_success, payment_cancel)
 
 app_name='app1'
 
@@ -20,6 +25,11 @@ urlpatterns = [
     path('customer/review/<int:pk>/',customerreview,name="customer_review"),
     path('customer/chat/<int:pk>/',customerchat,name="customer_chat"),
     path('customer/profile/',customerprofile,name="customer_profile"),
+    path('customer/report_dispute/<int:connection_id>/', report_dispute, name='report_dispute'),
+    # Payment URLs
+    path('customer/create-checkout-session/<int:connection_id>/', create_checkout_session, name='create_checkout_session'),
+    path('customer/payment-success/', payment_success, name='payment_success'),
+    path('customer/payment-cancel/', payment_cancel, name='payment_cancel'),
     path('mediator/login/',brokerlogin,name="broker_login"),
     path('mediator/logout/',brokerlogout,name="broker_logout"),
     path('mediator/signup/',brokersignup,name="broker_signup"),
@@ -32,5 +42,13 @@ urlpatterns = [
     path('mediator/profile/',brokerprofile,name="broker_profile"),
     path('mediator/reviews/<int:pk>',brokerreviews,name="broker_reviews"),
     path('mediator/chat/<int:pk>/',brokerchat,name="broker_chat"),
+
+    # Blog URLs
+    path('blog/', include([
+        path('', BlogPostListView.as_view(), name='blog_post_list'),
+        path('new/', BlogPostCreateView.as_view(), name='blog_post_create'),
+        path('<slug:slug>/', BlogPostDetailView.as_view(), name='blog_post_detail'),
+        path('<slug:slug>/edit/', BlogPostUpdateView.as_view(), name='blog_post_edit'),
+    ])),
 ]
 

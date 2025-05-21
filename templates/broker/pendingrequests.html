@@ -6,27 +6,36 @@
     <br>
     {% if psize %}
       <ul class="list-group">
-        <li class="list-group-item"><h3>Pending requests are</h3></li>
-        {% for r in pendingrequests  %}
+        <li class="list-group-item active"><h3>Pending Requests ({{ psize }})</h3></li>
+        {% for item in pendingrequests_with_disputes %}
         <li class="list-group-item">
-          <form action="" method="POST">
+          <form action="" method="POST"> {# Action can be current page or specific view for POST #}
             {% csrf_token %}
-            <h4 style="float: left;">From : {{r.customer.user.username}}</h4>
-            <input type="hidden" name="connection" value="{{r.pk}}">
-            <input type="submit" class="btn btn-warning" name="reject" value="reject" style="float: right; margin-left:5px;">
-            <input type="submit" class="btn btn-success" name="accept" value="accept" style="float: right;margin-left:5px;margin-right:5px;">
+            <h5 style="float: left;">From: {{ item.connection.customer.user.username }}</h5>
+            <input type="hidden" name="connection" value="{{ item.connection.pk }}">
             
+            <div style="float: right; margin-left:5px;">
+                <label for="price_for_connection_{{item.connection.pk}}" class="sr-only">Price</label>
+                <input type="number" step="0.01" name="price_for_connection_{{item.connection.pk}}" placeholder="Set Price (USD)" class="form-control form-control-sm d-inline-block" style="width: 120px; margin-right: 5px;" required>
+                <input type="submit" class="btn btn-success btn-sm" name="accept" value="Accept">
+                <input type="submit" class="btn btn-warning btn-sm" name="reject" value="Reject" style="margin-left:5px;">
+            </div>
           </form>
-          <br>
-          <br>
-          
-          <h5>customer is {{r.customer}}  requested at {{r.created_time}}       </h5>
-          <h5> About:-{{r.description}}</h5>
+          <br style="clear:both;">
+          <p class="mb-1"><small>Requested: {{ item.connection.created_time|date:"F d, Y H:i" }}</small></p>
+          <p class="mb-1"><strong>About:</strong> {{ item.connection.description }}</p>
+          {% if item.latest_dispute %}
+            <div class="mt-2 p-2 border border-danger rounded bg-light">
+              <p class="text-danger mb-1"><strong>Dispute Reported (Status: {{ item.latest_dispute.status }})</strong></p>
+              <p class="small mb-0"><strong>Reason:</strong> {{ item.latest_dispute.reason|truncatewords:30 }}</p>
+              <p class="small text-muted mb-0">Reported by: {{ item.latest_dispute.reporter_user.username }} on {{ item.latest_dispute.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+          {% endif %}
         </li>
-        
-        
         {% endfor %}
       </ul>
+    {% else %}
+      <p>No pending requests.</p>
     {% endif %}
   </div>
 {% endblock content %}

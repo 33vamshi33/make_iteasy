@@ -7,15 +7,22 @@
     <br>
     {% if csize %}
     <ul class="list-group">
-      <li class="list-group-item"><h3>Completed orders are:</h3></li>
-      {% for o in completedorders %}
+      <li class="list-group-item"><h3>Completed Orders:</h3></li>
+      {% for item in completedorders_with_disputes %}
         <li class="list-group-item">
-          <h5> To {{o.broker}}  requested at {{o.created_time}}</h5>
-          <h6>order completed at {{o.modified_time}}</h6>
-          <h5>About:- {{o.description}}</h5>
-          <h5>care to give a review to {{o.broker}}</h5> 
-          <a href="{% url 'app1:customer_review' pk=o.broker.pk %}" class="btn btn-primary" style="float: right;">Review</a>
+          <h5>To: {{ item.order.broker.user.username }}</h5>
+          <p>Service: {{ item.order.description }}</p>
+          <p><small>Requested: {{ item.order.created_time|date:"F d, Y H:i" }} | Completed: {{ item.order.modified_time|date:"F d, Y H:i" }}</small></p>
           
+          {% if item.dispute %}
+            <p class="text-danger"><strong>Dispute Status: {{ item.dispute.status }}</strong> (Reported: {{ item.dispute.created_at|date:"F d, Y" }})</p>
+            <p><small>Reason: {{ item.dispute.reason|truncatewords:20 }}</small></p>
+          {% else %}
+             <a href="{% url 'app1:report_dispute' connection_id=item.order.id %}" class="btn btn-warning btn-sm mb-2">Report Issue</a>
+          {% endif %}
+
+          <p>Care to give a review to {{ item.order.broker.user.username }}?</p>
+          <a href="{% url 'app1:customer_review' pk=item.order.broker.pk %}" class="btn btn-primary btn-sm" style="float: right;">Review</a>
         </li>
       {% endfor %}
     </ul>

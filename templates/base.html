@@ -50,13 +50,17 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="{% url 'app1:customer_orders' %}" role="button" aria-haspopup="true" aria-expanded="false">Notifications 
                   {% ifequal tl 0  %} 
+                  <span id="notification-count-customer" style="color:cyan;"></span>
                   {% else %}
-                  <span style="color:cyan;">{{tl}}</span>
+                  <span id="notification-count-customer" style="color:cyan;">{{tl}}</span>
                   {% endifequal %}
                 </a>
                 <div class="dropdown-menu">
                   {% include "_notification.html" %}
                 </div>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'app1:blog_post_list' %}">Blog</a>
               </li>
               <li class="nav-item ">
                 <a class="nav-link" href="{% url 'app1:customer_logout' %}">logout</a>
@@ -76,6 +80,9 @@
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'app1:broker_reviews' pk=user.pk %}" >My reviews</a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'app1:blog_post_list' %}">Blog</a>
+              </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="{% url 'app1:broker_requests' %}" role="button" aria-haspopup="true" aria-expanded="false"> my requests</a>
                 <div class="dropdown-menu">
@@ -89,8 +96,9 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="{% url 'app1:customer_orders' %}" role="button" aria-haspopup="true" aria-expanded="false">Notifications 
                   {% ifequal tl 0  %} 
+                  <span id="notification-count-broker" style="color:cyan;"></span>
                   {% else %}
-                  <span style="color:cyan;">{{tl}}</span>
+                  <span id="notification-count-broker" style="color:cyan;">{{tl}}</span>
                   {% endifequal %}
                 </a>
                 <div class="dropdown-menu">
@@ -115,6 +123,9 @@
             <li class="nav-item">
               <a class="nav-link" href="#" >Contact us </a>
             </li>
+            <li class="nav-item"> {# Blog link for non-authenticated users #}
+              <a class="nav-link" href="{% url 'app1:blog_post_list' %}">Blog</a>
+            </li>
           </ul>
         </div>
     </nav>
@@ -130,5 +141,163 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <!-- 35 px for navbar -->
+
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+
+    <style>
+      .toast-notification {
+        padding: 15px;
+        margin-bottom: 10px;
+        border: 1px solid transparent;
+        border-radius: .25rem;
+        color: #fff;
+        background-color: #007bff; /* Blue default */
+        border-color: #007bff;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+        min-width: 250px; /* Minimum width for toasts */
+      }
+      .toast-notification.show {
+        opacity: 1;
+      }
+      .toast-notification.error {
+        background-color: #dc3545; /* Red for errors */
+        border-color: #dc3545;
+      }
+      .toast-notification.success {
+        background-color: #28a745; /* Green for success */
+        border-color: #28a745;
+      }
+      .toast-notification strong {
+        font-weight: bold;
+      }
+    </style>
+
+    {% if user.is_authenticated %}
+    <script>
+      function showToastNotification(title, message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification'; // Base class
+        
+        // Add type class for specific styling (info, success, error)
+        if (type === 'success') {
+            toast.classList.add('success');
+        } else if (type === 'error') {
+            toast.classList.add('error');
+        } else {
+            // Default to info/blue style, no extra class needed if base is blue
+        }
+
+        toast.innerHTML = `<strong>${title}</strong><br>${message}`;
+        
+        container.appendChild(toast);
+
+        // Trigger reflow to enable transition
+        toast.offsetHeight; 
+        toast.classList.add('show');
+
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+            container.removeChild(toast);
+          }, 500); // Allow fade out transition
+        }, 5000); // Display toast for 5 seconds
+      }
+
+      const notificationSocketProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+      const notificationSocket = new WebSocket(
+        notificationSocketProtocol +
+        window.location.host +
+        '/ws/notifications/'
+      );
+
+      notificationSocket.onopen = function(e) {
+        console.log('Notification socket connected successfully.');
+      };
+
+      notificationSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log("Notification received: ", data);
+
+        if (data.message && data.message.event) {
+          let toastTitle = "New Notification";
+          let toastMessage = "You have a new update.";
+          let toastType = "info"; // Default type
+
+          // Customize message based on event
+          const eventData = data.message;
+          switch(eventData.event) {
+            case 'new_connection_request':
+              toastTitle = 'New Request!';
+              toastMessage = `${eventData.customer_name || 'A customer'} sent you a connection request: ${eventData.description || ''}`;
+              break;
+            case 'connection_accepted':
+            case 'connection_accepted_from_pending':
+              toastTitle = 'Request Accepted!';
+              toastMessage = `${eventData.broker_name || 'A broker'} accepted your request (ID: ${eventData.connection_id}).`;
+              toastType = 'success';
+              break;
+            case 'connection_rejected':
+            case 'connection_rejected_from_pending':
+              toastTitle = 'Request Rejected';
+              toastMessage = `${eventData.broker_name || 'A broker'} rejected your request (ID: ${eventData.connection_id}).`;
+              toastType = 'error';
+              break;
+            case 'connection_completed':
+            case 'connection_completed_from_accepted':
+              toastTitle = 'Request Completed!';
+              toastMessage = `${eventData.broker_name || 'A broker'} marked your request (ID: ${eventData.connection_id}) as completed.`;
+              toastType = 'success';
+              break;
+            case 'new_chat_message':
+              toastTitle = `New Message from ${eventData.sender_name || 'User'}`;
+              toastMessage = `"${eventData.message_text || ''}"`;
+              // Potentially link to chat: (ID: ${eventData.connection_pk})
+              break;
+            default:
+              toastMessage = `Event: ${eventData.event}`;
+          }
+          showToastNotification(toastTitle, toastMessage, toastType);
+
+          // Update notification count badge
+          let countElement = null;
+          if (document.getElementById('notification-count-customer')) {
+            countElement = document.getElementById('notification-count-customer');
+          } else if (document.getElementById('notification-count-broker')) {
+            countElement = document.getElementById('notification-count-broker');
+          }
+
+          if (countElement) {
+            let currentCount = parseInt(countElement.innerText || "0");
+            if (isNaN(currentCount)) currentCount = 0;
+            countElement.innerText = currentCount + 1;
+            // Ensure the badge is visible if it was hidden (e.g., when count was 0)
+            if (currentCount === 0) {
+                 // This depends on how visibility is handled; for now, just setting text.
+                 // If it's hidden by a class or style, that would need to be adjusted.
+            }
+          }
+        } else {
+            showToastNotification("Notification", JSON.stringify(data.message));
+        }
+      };
+
+      notificationSocket.onclose = function(e) {
+        console.error('Notification socket closed unexpectedly. Code:', e.code, 'Reason:', e.reason);
+        // Optionally, you could try to reconnect here after a delay
+      };
+
+      notificationSocket.onerror = function(err) {
+        console.error('Notification socket error:', err.message);
+        // Handle errors, maybe show a generic error toast
+        // showToastNotification("Error", "Notification service connection failed.", "error");
+      };
+
+    </script>
+    {% endif %}
+
   </body>
 </html>

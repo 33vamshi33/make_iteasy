@@ -1,67 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="jumbotron">
-    <h1>hey customer mr {{ user.username}}</h1>
+    <h1>Hey customer, {{ user.username }}</h1>
     <br>
-    <br>
-    {% if psize %}
-    <ul class="list-group">
-      <li class="list-group-item"><h3>Pending orders are:</h3></li>
-      {% for o in pendingorders %}
-        <li class="list-group-item">
-          <h5> To {{o.broker}}  requested at {{o.created_time}}</h5>
-          <!-- <h6>order last modified at {{o.modified_time}}</h6> -->
-          <h5>About:- {{o.description}}</h5>
-        </li>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
       {% endfor %}
-    </ul>
     {% endif %}
     <br>
-    <br>
-    {% if asize %}
-    <ul class="list-group">
-      <li class="list-group-item"><h3>Accepted orders are:</h3></li>
-      {% for o in acceptedorders %}
-        <li class="list-group-item">
-          <h5> To {{o.broker}}  requested at {{o.created_time}}</h5>
-          <h6>order last modified at {{o.modified_time}}</h6>
-          <h5>About:- {{o.description}}</h5>
-        </li>
-      {% endfor %}
-    </ul>
+
+    {% if orders_with_disputes %}
+      <h3>All Your Orders:</h3>
+      <ul class="list-group">
+        {% for item in orders_with_disputes %}
+          <li class="list-group-item">
+            <h5>To: {{ item.order.broker.user.username }} (Status: {{ item.order.customer_status }})</h5>
+            <p>Service: {{ item.order.description }}</p>
+            <p><small>Requested on: {{ item.order.created_time|date:"F d, Y H:i" }} | Last Modified: {{ item.order.modified_time|date:"F d, Y H:i" }}</small></p>
+            
+            {% if item.dispute %}
+              <p class="text-danger"><strong>Dispute Status: {{ item.dispute.status }}</strong> (Reported: {{ item.dispute.created_at|date:"F d, Y" }})</p>
+              <p><small>Reason: {{ item.dispute.reason|truncatewords:20 }}</small></p>
+            {% else %}
+              {% if item.order.customer_status == "order accepted" or item.order.customer_status == "order completed" %}
+                <a href="{% url 'app1:report_dispute' connection_id=item.order.id %}" class="btn btn-warning btn-sm">Report Issue</a>
+              {% endif %}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>You have no orders yet.</p>
     {% endif %}
-      
-  
-  <br><br>
-  
-  {% if rsize %}
-  <ul class="list-group">
-    <li class="list-group-item"><h3>Rejected orders are:</h3></li>
-    {% for o in rejectedorders %}
-      <li class="list-group-item">
-        <h5> To {{o.broker}} requested at {{o.created_time}}</h5>
-        <h6>order last modified at {{o.modified_time}}</h6>
-        <h5>About:- {{o.description}}</h5>
-      </li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-    
-  <br><br>
-  {% if csize %}
-  <ul class="list-group">
-    <li class="list-group-item"><h3>Completed orders are:</h3></li>
-    {% for o in completedorders %}
-      <li class="list-group-item">
-        <h5> To {{o.broker}} requested at {{o.created_time}}</h5>
-        <h6>order completed at {{o.modified_time}}</h6>
-        <h5>About:- {{o.description}}</h5>
-      </li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-  
-  
   </div>
-  
 {% endblock content %}
