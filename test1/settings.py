@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'multiselectfield',
+    'channels',
     'app1',
     'bootstrap4',
     'crispy_forms',
@@ -77,6 +78,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'test1.wsgi.application'
+ASGI_APPLICATION = 'test1.asgi.application'
 
 
 # Database
@@ -140,3 +142,7 @@ MEDIA_URL='/media/'
 # EMAIL_PORT=587
 # EMAIL_HOST_USER='35angelina35@gmail.com'
 # EMAIL_HOST_PASSWORD='Vamshi33'
+
+# Stripe Settings
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'your_publishable_key_placeholder')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'your_secret_key_placeholder')

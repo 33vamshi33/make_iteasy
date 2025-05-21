@@ -6,25 +6,29 @@
     <br>
     {% if psize %}
       <ul class="list-group">
-        <li class="list-group-item"><h3>Pending requests are</h3></li>
-        {% for r in pendingrequests  %}
+        <li class="list-group-item active"><h3>Pending Requests ({{ psize }})</h3></li>
+        {% for item in pendingrequests_with_disputes %}
         <li class="list-group-item">
-          <form action="" method="POST">
+          <form action="{% url 'app1:broker_pendingrequests' %}" method="POST"> {# Ensure form action points to the correct view if actions are here #}
             {% csrf_token %}
-            <h4 style="float: left;">From : {{r.customer.user.username}}</h4>
-            <input type="hidden" name="connection" value="{{r.pk}}">
-            <!-- <input type="submit" class="btn btn-warning" name="reject" value="reject" style="float: right; margin-left:5px;">
-            <input type="submit" class="btn btn-success" name="accept" value="accept" style="float: right;margin-left:5px;margin-right:5px;">
-            -->
+            <h5 style="float: left;">From: {{ item.connection.customer.user.username }}</h5>
+            <input type="hidden" name="connection" value="{{ item.connection.pk }}">
+            {# Buttons for accept/reject are typically on the dedicated pendingrequests.html page #}
+            {# If you want them here, they need to be added, e.g.: #}
+            {# <input type="submit" class="btn btn-warning btn-sm" name="reject" value="Reject" style="float: right; margin-left:5px;"> #}
+            {# <input type="submit" class="btn btn-success btn-sm" name="accept" value="Accept" style="float: right;margin-left:5px;margin-right:5px;"> #}
           </form>
-          <br>
-          <br>
-          
-          <h5>customer is {{r.customer}}  requested at {{r.created_time}}  <br> About:- </h5>
-          <h4>{{r.description}}</h4>
+          <br style="clear:both;">
+          <p class="mb-1"><small>Requested: {{ item.connection.created_time|date:"F d, Y H:i" }}</small></p>
+          <p class="mb-1"><strong>About:</strong> {{ item.connection.description }}</p>
+          {% if item.latest_dispute %}
+            <div class="mt-2 p-2 border border-danger rounded bg-light">
+              <p class="text-danger mb-1"><strong>Dispute Reported (Status: {{ item.latest_dispute.status }})</strong></p>
+              <p class="small mb-0"><strong>Reason:</strong> {{ item.latest_dispute.reason|truncatewords:30 }}</p>
+              <p class="small text-muted mb-0">Reported by: {{ item.latest_dispute.reporter_user.username }} on {{ item.latest_dispute.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+          {% endif %}
         </li>
-        
-        
         {% endfor %}
       </ul>
     {% endif %}
@@ -32,26 +36,27 @@
     <br>
     {% if asize %}
       <ul class="list-group">
-        <li class="list-group-item"><h3>Accepted requests are</h3></li>
-        {% for r in acceptedrequests  %}
+        <li class="list-group-item active"><h3>Accepted Requests ({{ asize }})</h3></li>
+        {% for item in acceptedrequests_with_disputes %}
         <li class="list-group-item">
-          <form action="" method="POST">
+          <form action="{% url 'app1:broker_acceptedrequests' %}" method="POST"> {# Ensure form action points to the correct view if actions are here #}
             {% csrf_token %}
-            <h4 style="float: left;">From : {{r.customer.user.username}}</h4>
-            
-            <input type="hidden" name="connection" value="{{r.pk}}">
-            <!-- <input type="submit" class="btn btn-success" name="completed" value="completed" style="float: right; margin-left:5px;"> -->
-            <!-- <input type="submit" class="btn btn-success" name="accept" value="accept" style="float: right;margin-left:5px;margin-right:5px;"> -->
-            
+            <h5 style="float: left;">From: {{ item.connection.customer.user.username }}</h5>
+            <input type="hidden" name="connection" value="{{ item.connection.pk }}">
+            {# Button for 'completed' is typically on the dedicated acceptedrequests.html page #}
+            {# <input type="submit" class="btn btn-success btn-sm" name="completed" value="Mark as Completed" style="float: right; margin-left:5px;"> #}
           </form>
-          <br>
-          <br>
-          
-          <h5>customer is {{r.customer}}  requested at {{r.created_time}}  <br> About:- </h5>
-          <h4>{{r.description}}</h4>
+          <br style="clear:both;">
+          <p class="mb-1"><small>Requested: {{ item.connection.created_time|date:"F d, Y H:i" }} | Accepted: {{ item.connection.modified_time|date:"F d, Y H:i" }}</small></p>
+          <p class="mb-1"><strong>About:</strong> {{ item.connection.description }}</p>
+          {% if item.latest_dispute %}
+            <div class="mt-2 p-2 border border-danger rounded bg-light">
+              <p class="text-danger mb-1"><strong>Dispute Reported (Status: {{ item.latest_dispute.status }})</strong></p>
+              <p class="small mb-0"><strong>Reason:</strong> {{ item.latest_dispute.reason|truncatewords:30 }}</p>
+              <p class="small text-muted mb-0">Reported by: {{ item.latest_dispute.reporter_user.username }} on {{ item.latest_dispute.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+          {% endif %}
         </li>
-        
-        
         {% endfor %}
       </ul>
     {% endif %}
@@ -59,16 +64,21 @@
     <br>
     {% if rsize %}
       <ul class="list-group">
-        <li class="list-group-item"><h3>Rejected requests are</h3></li>
-        {% for r in rejectedrequests  %}
+        <li class="list-group-item active"><h3>Rejected Requests ({{ rsize }})</h3></li>
+        {% for item in rejectedrequests_with_disputes %}
         <li class="list-group-item">
-          <h4>From : {{r.customer.user.username}} which was created at {{r.created_time}}</h4>
-          
-          <h5>Rejected on {{r.modified_time}}  <br> About:- </h5>
-          <h4>{{r.description}}</h4>
-          
+          <h5 style="float: left;">From: {{ item.connection.customer.user.username }}</h5>
+          <br style="clear:both;">
+          <p class="mb-1"><small>Requested: {{ item.connection.created_time|date:"F d, Y H:i" }} | Rejected: {{ item.connection.modified_time|date:"F d, Y H:i" }}</small></p>
+          <p class="mb-1"><strong>About:</strong> {{ item.connection.description }}</p>
+          {% if item.latest_dispute %}
+            <div class="mt-2 p-2 border border-warning rounded bg-light"> {# Changed to border-warning for rejected, less severe than active disputes #}
+              <p class="text-warning mb-1"><strong>Dispute Logged (Status: {{ item.latest_dispute.status }})</strong></p>
+              <p class="small mb-0"><strong>Reason:</strong> {{ item.latest_dispute.reason|truncatewords:30 }}</p>
+              <p class="small text-muted mb-0">Reported by: {{ item.latest_dispute.reporter_user.username }} on {{ item.latest_dispute.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+          {% endif %}
         </li>
-        
         {% endfor %}
       </ul>
     {% endif %}
@@ -76,15 +86,21 @@
     <br>
     {% if csize %}
       <ul class="list-group">
-        <li class="list-group-item"><h3>Completed requests are</h3></li>
-        {% for c in completedrequests  %}
+        <li class="list-group-item active"><h3>Completed Requests ({{ csize }})</h3></li>
+        {% for item in completedrequests_with_disputes %}
         <li class="list-group-item">
-          <h4>From : {{c.customer.user.username}} which was created at {{c.created_time}}</h4>
-          <h4>{{c.description}}</h4>
-          <h5>completed on {{c.modified_time}} <br> About:- </h5>
-          <h4>{{r.description}}</h4>
+          <h5 style="float: left;">From: {{ item.connection.customer.user.username }}</h5>
+          <br style="clear:both;">
+          <p class="mb-1"><small>Requested: {{ item.connection.created_time|date:"F d, Y H:i" }} | Completed: {{ item.connection.modified_time|date:"F d, Y H:i" }}</small></p>
+          <p class="mb-1"><strong>About:</strong> {{ item.connection.description }}</p>
+          {% if item.latest_dispute %}
+            <div class="mt-2 p-2 border border-info rounded bg-light"> {# Changed to border-info for completed, as dispute might be resolved/closed #}
+              <p class="text-info mb-1"><strong>Dispute Logged (Status: {{ item.latest_dispute.status }})</strong></p>
+              <p class="small mb-0"><strong>Reason:</strong> {{ item.latest_dispute.reason|truncatewords:30 }}</p>
+              <p class="small text-muted mb-0">Reported by: {{ item.latest_dispute.reporter_user.username }} on {{ item.latest_dispute.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+          {% endif %}
         </li>
-        
         {% endfor %}
       </ul>
     {% endif %}

@@ -37,7 +37,19 @@
       <br>
       <br>
       <label for="location">Location:</label>
-      <input type="text" name="location" placeholder="{{broker.location}}">
+      <input type="text" name="location" placeholder="{{broker.location}}" value="{{ broker.location }}">
+      <br>
+      <br>
+      <label for="experience">Experience (Years):</label>
+      <input type="number" name="experience" placeholder="Years of experience" value="{{ current_experience|default_if_none:'' }}">
+      <br>
+      <br>
+      <label for="skills">Skills (comma-separated):</label>
+      <textarea name="skills" placeholder="e.g., Python, Django, Project Management">{{ current_skills|default_if_none:'' }}</textarea>
+      <br>
+      <br>
+      <label for="portfolio_link">Portfolio Link:</label>
+      <input type="url" name="portfolio_link" placeholder="https://example.com/portfolio" value="{{ current_portfolio_link|default_if_none:'' }}">
       <br>
       <br>
       <input type="submit" class="btn btn-success btn-large" value="save changes">

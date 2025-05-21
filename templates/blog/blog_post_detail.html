@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <article class="blog-post">
+    <h2 class="blog-post-title">{{ post.title }}</h2>
+    <p class="blog-post-meta">
+      Published on {{ post.published_date|date:"F d, Y H:i" }} by {{ post.author.username }}
+      {% if post.category %} | Category: <a href="#">{{ post.category.name }}</a> {% endif %} {# Link to category page can be added later #}
+    </p>
+    <hr>
+    
+    <div class="post-content">
+      {{ post.content|safe }} {# Assuming content can contain HTML and is trusted or sanitized #}
+    </div>
+    
+    <hr>
+    {% if post.author == request.user or request.user.is_staff %}
+      <a href="{% url 'app1:blog_post_edit' slug=post.slug %}" class="btn btn-secondary">Edit Post</a>
+    {% endif %}
+    <a href="{% url 'app1:blog_post_list' %}" class="btn btn-outline-primary">Back to Blog List</a>
+  </article>
+</div>
+{% endblock content %}

@@ -6,25 +6,32 @@
     <br>
     {% if rsize %}
       <ul class="list-group">
-        <li class="list-group-item"><h3>Rejected requests are</h3></li>
-        {% for r in rejectedrequests  %}
+        <li class="list-group-item active"><h3>Rejected Requests ({{ rsize }})</h3></li>
+        {% for item in rejectedrequests_with_disputes %}
         <li class="list-group-item">
-          <form action="" method="POST">
+          <form action="" method="POST"> {# Action can be current page or specific view for POST #}
             {% csrf_token %}
-            <h4 style="float: left;">From : {{r.customer.user.username}}</h4>
-            <input type="hidden" name="connection" value="{{r.pk}}">
-            <input type="submit" class="btn btn-success" name="accept" value="accept" style="float: right; margin-left:5px;">
+            <h5 style="float: left;">From: {{ item.connection.customer.user.username }}</h5>
+            <input type="hidden" name="connection" value="{{ item.connection.pk }}">
+            {# The 'accept' button here might be for re-opening or reconsidering a rejected request, #}
+            {# ensure the view `brokerrejectedrequests` handles this POST if the button is active. #}
+            {# <input type="submit" class="btn btn-success btn-sm" name="accept" value="Re-evaluate" style="float: right; margin-left:5px;"> #}
           </form>
-          <br>
-          <br>
-          
-          <h5>Rejected on {{r.modified_time}} </h5>
-          <h5> About:- {{r.description}}</h5>
-          
+          <br style="clear:both;">
+          <p class="mb-1"><small>Requested: {{ item.connection.created_time|date:"F d, Y H:i" }} | Rejected: {{ item.connection.modified_time|date:"F d, Y H:i" }}</small></p>
+          <p class="mb-1"><strong>About:</strong> {{ item.connection.description }}</p>
+          {% if item.latest_dispute %}
+            <div class="mt-2 p-2 border border-warning rounded bg-light">
+              <p class="text-warning mb-1"><strong>Dispute Logged (Status: {{ item.latest_dispute.status }})</strong></p>
+              <p class="small mb-0"><strong>Reason:</strong> {{ item.latest_dispute.reason|truncatewords:30 }}</p>
+              <p class="small text-muted mb-0">Reported by: {{ item.latest_dispute.reporter_user.username }} on {{ item.latest_dispute.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+          {% endif %}
         </li>
-        
         {% endfor %}
       </ul>
+    {% else %}
+      <p>No rejected requests.</p>
     {% endif %}
   </div>
 {% endblock content %}
