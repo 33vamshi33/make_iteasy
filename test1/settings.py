@@ -140,8 +140,18 @@ MEDIA_URL='/media/'
 # EMAIL_HOST='smtp.gmail.com'
 # EMAIL_USE_TLS=True
 # EMAIL_PORT=587
-# EMAIL_HOST_USER='35angelina35@gmail.com'
-# EMAIL_HOST_PASSWORD='Vamshi33'
+# EMAIL_HOST_USER='35angelina35@gmail.com' # Example, will be replaced
+# EMAIL_HOST_PASSWORD='Vamshi33' # Example, will be replaced
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # For development/testing
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your_default_email@example.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your_default_password')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'webmaster@localhost')
+
 
 # Stripe Settings
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'your_publishable_key_placeholder')

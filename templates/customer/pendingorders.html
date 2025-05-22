@@ -7,15 +7,36 @@
     <br>
     {% if psize %}
     <ul class="list-group">
-      <li class="list-group-item"><h3>Pending orders are:</h3></li>
-      {% for o in pendingorders %}
+      <li class="list-group-item active"><h3>Pending Orders <span class="badge badge-light">{{ psize }}</span></h3></li>
+      {% for item in pendingorders_with_disputes %}
         <li class="list-group-item">
-          <h5> To {{o.broker}}  requested at {{o.created_time}}</h5>
-          <!-- <h6>order last modified at {{o.modified_time}}</h6> -->
-          <h5>About:- {{o.description}}</h5>
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">To: {{ item.order.broker.user.username }}</h5>
+            <span class="badge badge-warning">{{ item.order.customer_status }}</span>
+          </div>
+          <p class="mb-1"><strong>Service:</strong> {{ item.order.description }}</p>
+          <p class="mb-1"><small>Requested: {{ item.order.created_time|date:"F d, Y H:i" }}</small></p>
+          
+          {% if item.order.price is not None %}
+            <p class="mb-1"><strong>Quoted Price:</strong> ${{ item.order.price }}</p>
+          {% endif %}
+          
+          {% if item.dispute %}
+            <div class="mt-2 alert alert-danger p-2" role="alert">
+              <strong>Dispute Reported:</strong> ({{ item.dispute.status }}) {{ item.dispute.reason|truncatewords:15 }}
+            </div>
+          {% endif %}
+          <div class="mt-2">
+            <a href="{% url 'app1:customer_chat' pk=item.order.broker.pk %}" class="btn btn-info btn-sm">Chat with Broker</a>
+            {# No "Report Issue" for pending, typically customer waits for acceptance/rejection first #}
+          </div>
         </li>
       {% endfor %}
     </ul>
+    {% else %}
+      <div class="alert alert-info mt-3" role="alert">
+        You have no pending orders.
+      </div>
     {% endif %}
   </div>
 {% endblock content %}

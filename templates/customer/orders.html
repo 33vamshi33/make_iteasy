@@ -15,28 +15,103 @@
     {% endif %}
     <br>
 
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <a href="{% url 'app1:customer_pendingorders' %}" class="text-decoration-none">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Pending Orders</h5>
+              <h2><span class="badge badge-warning">{{ psize|default:0 }}</span></h2>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-3">
+        <a href="{% url 'app1:customer_acceptedorders' %}" class="text-decoration-none">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Accepted Orders</h5>
+              <h2><span class="badge badge-success">{{ asize|default:0 }}</span></h2>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-3">
+        <a href="{% url 'app1:customer_rejectedorders' %}" class="text-decoration-none">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Rejected Orders</h5>
+              <h2><span class="badge badge-danger">{{ rsize|default:0 }}</span></h2>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-3">
+        <a href="{% url 'app1:customer_completedorders' %}" class="text-decoration-none">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Completed Orders</h5>
+              <h2><span class="badge badge-primary">{{ csize|default:0 }}</span></h2>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
     {% if orders_with_disputes %}
-      <h3>All Your Orders:</h3>
+      <h3 class="mt-4">All Your Orders (Detailed View):</h3>
       <ul class="list-group">
         {% for item in orders_with_disputes %}
           <li class="list-group-item">
-            <h5>To: {{ item.order.broker.user.username }} (Status: {{ item.order.customer_status }})</h5>
-            <p>Service: {{ item.order.description }}</p>
-            <p><small>Requested on: {{ item.order.created_time|date:"F d, Y H:i" }} | Last Modified: {{ item.order.modified_time|date:"F d, Y H:i" }}</small></p>
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">To: {{ item.order.broker.user.username }}</h5>
+              <small>
+                {% if item.order.customer_status == "order pending" %}
+                  <span class="badge badge-warning">{{ item.order.customer_status }}</span>
+                {% elif item.order.customer_status == "order accepted" %}
+                  <span class="badge badge-success">{{ item.order.customer_status }}</span>
+                {% elif item.order.customer_status == "order rejected" %}
+                  <span class="badge badge-danger">{{ item.order.customer_status }}</span>
+                {% elif item.order.customer_status == "order completed" %}
+                  <span class="badge badge-primary">{{ item.order.customer_status }}</span>
+                {% else %}
+                  <span class="badge badge-secondary">{{ item.order.customer_status }}</span>
+                {% endif %}
+              </small>
+            </div>
+            <p class="mb-1"><strong>Service:</strong> {{ item.order.description }}</p>
+            <p class="mb-1"><small>Requested: {{ item.order.created_time|date:"F d, Y H:i" }} | Last Modified: {{ item.order.modified_time|date:"F d, Y H:i" }}</small></p>
             
-            {% if item.dispute %}
-              <p class="text-danger"><strong>Dispute Status: {{ item.dispute.status }}</strong> (Reported: {{ item.dispute.created_at|date:"F d, Y" }})</p>
-              <p><small>Reason: {{ item.dispute.reason|truncatewords:20 }}</small></p>
-            {% else %}
-              {% if item.order.customer_status == "order accepted" or item.order.customer_status == "order completed" %}
-                <a href="{% url 'app1:report_dispute' connection_id=item.order.id %}" class="btn btn-warning btn-sm">Report Issue</a>
-              {% endif %}
+            {% if item.order.price is not None %}
+              <p class="mb-1"><strong>Price:</strong> ${{ item.order.price }}</p>
+              <p class="mb-1"><strong>Payment Status:</strong> <span class="badge badge-{% if item.order.payment_status == 'Paid' %}success{% elif item.order.payment_status == 'Failed' %}danger{% else %}secondary{% endif %}">{{ item.order.payment_status }}</span>
+                {% if item.order.payment_status == 'Paid' %}
+                  <small class="text-muted">(ID: {{ item.order.stripe_payment_intent_id|truncatechars:20 }})</small>
+                {% endif %}
+              </p>
             {% endif %}
+
+            <div class="mt-2">
+                {% if item.order.customer_status == "order accepted" and item.order.price and item.order.payment_status == 'Pending' %}
+                    <a href="{% url 'app1:create_checkout_session' connection_id=item.order.id %}" class="btn btn-success btn-sm">Pay Now (Simulated)</a>
+                {% endif %}
+                <a href="{% url 'app1:customer_chat' pk=item.order.broker.pk %}" class="btn btn-info btn-sm">Chat with Broker</a>
+                {% if item.dispute %}
+                  <span class="badge badge-danger">Dispute Status: {{ item.dispute.status }}</span>
+                {% else %}
+                  {% if item.order.customer_status == "order accepted" or item.order.customer_status == "order completed" %}
+                    <a href="{% url 'app1:report_dispute' connection_id=item.order.id %}" class="btn btn-warning btn-sm">Report Issue</a>
+                  {% endif %}
+                {% endif %}
+                {% if item.order.customer_status == "order completed" %}
+                     <a href="{% url 'app1:customer_review' pk=item.order.broker.pk %}" class="btn btn-outline-primary btn-sm">Leave Review</a>
+                {% endif %}
+            </div>
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p>You have no orders yet.</p>
+      <p class="alert alert-info">You have no orders yet.</p>
     {% endif %}
   </div>
 {% endblock content %}

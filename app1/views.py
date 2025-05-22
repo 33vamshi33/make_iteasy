@@ -68,8 +68,10 @@ def customerdetail(request):
 
     brokers = Broker.objects.all() # Start with all brokers
 
-    unreadmessages=Message.objects.filter(customer__user=request.user,is_customerread=False)
-    unreadconnections=connection.objects.filter(customer__user=request.user,is_customerread=False)
+    unreadmessages=Message.objects.filter(customer__user=request.user,is_customerread=False) # For nav notifications
+    unreadconnections=connection.objects.filter(customer__user=request.user,is_customerread=False) # For nav notifications
+    
+    customer_obj = Customer.objects.get(user=request.user) # Get the customer object
 
     if request.method=='POST':
         if "connect" in request.POST: # Handle connection request separately
@@ -85,10 +87,29 @@ def customerdetail(request):
             newconnection.created_time=timezone.now()
             newconnection.modified_time=timezone.now()
             if len(prevconnection) == 0 :
-                # subject="Hey"+ newconnection.broker.user.username +"! a new request from a customer that is  "+newconnection.description
-                # body=f"makeiteasy helps it really helps"
-                # receiverlist=[newconnection.broker.user.email,]
-                # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+                subject = f"New Connection Request from {newconnection.customer.user.username}"
+                message_body = f"""
+Hi {newconnection.broker.user.username},
+
+You have received a new connection request from {newconnection.customer.user.username}.
+
+Details:
+- Description: {newconnection.description}
+- Customer Email: {newconnection.customer.user.email}
+
+You can view and manage this request in your dashboard:
+{request.build_absolute_uri(reverse('app1:broker_pendingrequests'))}
+
+Thanks,
+The Workiteasy Team
+"""
+                send_mail(
+                    subject,
+                    message_body,
+                    settings.DEFAULT_FROM_EMAIL, # Use default from email
+                    [newconnection.broker.user.email,],
+                    fail_silently=False
+                )
                 newconnection.save()
                 # Send notification to broker
                 channel_layer = get_channel_layer()
@@ -173,17 +194,26 @@ def customerdetail(request):
         brokers = Broker.objects.order_by(sort_by_value)
 
 
+    # Calculate statistics for the customer
+    new_pending_orders_count = connection.objects.filter(customer=customer_obj, customer_status="order pending", is_customerread=False).count()
+    active_accepted_orders_count = connection.objects.filter(customer=customer_obj, customer_status="order accepted").count()
+    # For "recently completed", let's do total completed for now, similar to broker.
+    completed_orders_count = connection.objects.filter(customer=customer_obj, customer_status="order completed").count()
+
     context={
-        "unreadconnections":unreadconnections,
-        "unreadmessages":unreadmessages,
-        "tl":len(unreadconnections)+len(unreadmessages),
+        "unreadconnections":unreadconnections, # For nav notifications
+        "unreadmessages":unreadmessages, # For nav notifications
+        "tl":len(unreadconnections)+len(unreadmessages), # For nav total
         "brokers": brokers,
-        "customer": request.user,
+        "customer": request.user, # request.user is the User object, customer_obj is the Customer profile
         "department_filter": department_filter,
         "location_filter": location_filter,
-        "days_filter_list": days_filter_list, # Pass the list of selected days
+        "days_filter_list": days_filter_list, 
         "min_rating_filter": min_rating_filter,
         "sort_by_value": sort_by_value,
+        "new_pending_orders_count": new_pending_orders_count,
+        "active_accepted_orders_count": active_accepted_orders_count,
+        "completed_orders_count": completed_orders_count,
     }
     return render(request,"customer/home.html",context)
     
@@ -193,9 +223,9 @@ def customerdetail(request):
 def brokerdetail(request):
     broker=Broker.objects.get(user=request.user)
     unreadmessages=Message.objects.filter(broker__user=request.user,is_brokerread=False)
-    unreadconnections=connection.objects.filter(broker__user=request.user,is_brokerread=False)
+    unreadconnections=connection.objects.filter(broker__user=request.user,is_brokerread=False) # This is existing unread count for nav
     mylist=broker.days
-    if request.method=='POST':
+    if request.method=='POST': # This POST is for updating broker's available days
         mylist=[]
         alllist=[0,1,2,3,4,5,6]
         for i in alllist:
@@ -203,11 +233,24 @@ def brokerdetail(request):
                 mylist.append(i)
         broker.days=mylist
         broker.save()
+        # It's good practice to redirect after a successful POST to avoid re-posting on refresh
+        return redirect(reverse('app1:broker_home')) 
+
+    # Calculate statistics
+    new_pending_requests_count = connection.objects.filter(broker=broker, broker_status="request pending", is_brokerread=False).count()
+    active_accepted_connections_count = connection.objects.filter(broker=broker, broker_status="request accepted").count()
+    # For "recently completed", let's define "recent" as e.g., last 7 days, or just total completed.
+    # For simplicity now, let's do total completed, can be refined later if "recent" is time-bound.
+    completed_connections_count = connection.objects.filter(broker=broker, broker_status="request completed").count()
+
     context={
         "mylist":mylist,
-        "unreadmessages":unreadmessages,
-        "unreadconnections":unreadconnections,
-        "tl":len(unreadconnections)+len(unreadmessages)
+        "unreadmessages":unreadmessages, # For nav notifications
+        "unreadconnections":unreadconnections, # For nav notifications
+        "tl":len(unreadconnections)+len(unreadmessages), # For nav total
+        "new_pending_requests_count": new_pending_requests_count,
+        "active_accepted_connections_count": active_accepted_connections_count,
+        "completed_connections_count": completed_connections_count,
     }
     return render(request,"broker/home.html",context=context)
 
@@ -249,10 +292,27 @@ def customersignup(request):
             customer=Customer()
             customer.user=user
             customer.save()
-            subject="thanks for registering  with makeiteasy"
-            body=f"makeiteasy helps it really helps"
-            receiverlist=[user.email,]
-            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            subject = f"Welcome to Workiteasy, {user.username}!"
+            message_body = f"""
+Hi {user.username},
+
+Thank you for registering with Workiteasy as a customer! We're excited to have you.
+
+You can now log in and start finding skilled brokers for your needs:
+{request.build_absolute_uri(reverse('app1:customer_login'))}
+
+If you have any questions, feel free to contact our support.
+
+Thanks,
+The Workiteasy Team
+"""
+            send_mail(
+                subject,
+                message_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email,],
+                fail_silently=False
+            )
             registered=True
         else:
             print(user_form.errors)
@@ -287,6 +347,28 @@ def brokersignup(request):
             broker=broker_form.save(commit=False)
             broker.user=user
             broker.save()
+
+            subject = f"Welcome to Workiteasy, Broker {user.username}!"
+            message_body = f"""
+Hi {user.username},
+
+Thank you for registering as a Broker on Workiteasy! We're thrilled to have you join our community of skilled professionals.
+
+Your profile is now active. You can log in here:
+{request.build_absolute_uri(reverse('app1:broker_login'))}
+
+Make sure to complete your profile to attract more customers. If you have any questions, please don't hesitate to reach out.
+
+Best regards,
+The Workiteasy Team
+"""
+            send_mail(
+                subject,
+                message_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email,],
+                fail_silently=False
+            )
             registered=True
         else:
             print(user_form.errors)
@@ -493,10 +575,27 @@ def brokerrequests(request):
             presentconnection.customer_status="order rejected"
             presentconnection.broker_status="request rejected"
             presentconnection.modified_time=timezone.now()
-            # subject="Sorry! your order has been rejected"
-            # body=f"makeiteasy helps it really helps"
-            # receiverlist=[presentconnection.customer.user.email,]
-            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+                subject = f"Your Connection with {presentconnection.broker.user.username} is Now Complete (from Accepted)"
+                message_body = f"""
+Hi {presentconnection.customer.user.username},
+
+This is to confirm that your accepted connection regarding "{presentconnection.description}" with broker {presentconnection.broker.user.username} has been marked as completed.
+
+You can view your completed orders here:
+{request.build_absolute_uri(reverse('app1:customer_completedorders'))}
+
+We hope you had a great experience!
+
+Thanks,
+The Workiteasy Team
+"""
+                send_mail(
+                    subject,
+                    message_body,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [presentconnection.customer.user.email,],
+                    fail_silently=False
+                )
             presentconnection.save()
             # Send notification to customer
             channel_layer = get_channel_layer()
@@ -518,10 +617,39 @@ def brokerrequests(request):
             presentconnection.customer_status="order completed"
             presentconnection.broker_status="request completed"
             presentconnection.modified_time=timezone.now()
-            # subject="Hurray! your order is completed"
-            # body=f"makeiteasy helps it really helps"
-            # receiverlist=[presentconnection.customer.user.email,]
-            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            
+            # Price setting logic (from previous step, ensure it's here)
+            price_str = request.POST.get(f'price_for_connection_{presentconnection.id}')
+            if price_str:
+                try:
+                    presentconnection.price = Decimal(price_str)
+                except (ValueError, TypeError):
+                    messages.error(request, f"Invalid price format for connection {presentconnection.id}.")
+                    pass 
+            else:
+                 messages.warning(request, f"No price was set for connection {presentconnection.id} by the broker.")
+
+            subject = f"Your Connection Request with {presentconnection.broker.user.username} has been Accepted (from Pending)"
+            message_body = f"""
+Hi {presentconnection.customer.user.username},
+
+Good news! Your pending connection request regarding "{presentconnection.description}" with broker {presentconnection.broker.user.username} has been accepted.
+
+Price quoted: ${presentconnection.price if presentconnection.price is not None else "Not set yet."}
+
+You can view the details here:
+{request.build_absolute_uri(reverse('app1:customer_acceptedorders'))}
+
+Thanks,
+The Workiteasy Team
+"""
+            send_mail(
+                subject,
+                message_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [presentconnection.customer.user.email,],
+                fail_silently=False
+            )
             presentconnection.save()
             # Send notification to customer
             channel_layer = get_channel_layer()
@@ -584,10 +712,39 @@ def brokerpendingrequests(request):
             presentconnection.customer_status="order accepted"
             presentconnection.broker_status="request accepted"
             presentconnection.modified_time=timezone.now()
-            subject="Yahoo! your order is accepted"
-            body=f"makeiteasy helps, it really helps"
-            receiverlist=[presentconnection.customer.user.email,]
-            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            
+            # Get price from form - this was already done in the previous step, ensuring it's still here.
+            price_str = request.POST.get(f'price_for_connection_{presentconnection.id}')
+            if price_str:
+                try:
+                    presentconnection.price = Decimal(price_str)
+                except (ValueError, TypeError):
+                    messages.error(request, f"Invalid price format for connection {presentconnection.id}. Please enter a valid decimal number.")
+                    pass 
+            else:
+                 messages.warning(request, f"No price was set for connection {presentconnection.id} by the broker.")
+
+            subject = f"Your Connection Request with {presentconnection.broker.user.username} has been Accepted!"
+            message_body = f"""
+Hi {presentconnection.customer.user.username},
+
+Good news! Your connection request regarding "{presentconnection.description}" with broker {presentconnection.broker.user.username} has been accepted.
+
+Price quoted: ${presentconnection.price if presentconnection.price is not None else "Not set yet."}
+
+You can view the details and proceed with payment (if applicable) here:
+{request.build_absolute_uri(reverse('app1:customer_acceptedorders'))}
+
+Thanks,
+The Workiteasy Team
+"""
+            send_mail(
+                subject,
+                message_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [presentconnection.customer.user.email,],
+                fail_silently=False
+            )
             presentconnection.save()
             # Send notification to customer
             channel_layer = get_channel_layer()
@@ -611,10 +768,27 @@ def brokerpendingrequests(request):
             presentconnection.customer_status="order rejected"
             presentconnection.broker_status="request rejected"
             presentconnection.modified_time=timezone.now()
-            # subject="Sorry! your order has been rejected"
-            # body=f"makeiteasy helps it really helps"
-            # receiverlist=[presentconnection.customer.user.email,]
-            # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            subject = f"Update on Your Connection Request with {presentconnection.broker.user.username}"
+            message_body = f"""
+Hi {presentconnection.customer.user.username},
+
+We're writing to inform you that your connection request regarding "{presentconnection.description}" with broker {presentconnection.broker.user.username} has been rejected.
+
+If you have any questions, you can contact the broker or search for other brokers.
+
+View your rejected orders here:
+{request.build_absolute_uri(reverse('app1:customer_rejectedorders'))}
+
+Thanks,
+The Workiteasy Team
+"""
+            send_mail(
+                subject,
+                message_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [presentconnection.customer.user.email,],
+                fail_silently=False
+            )
             presentconnection.save()
             # Send notification to customer
             channel_layer = get_channel_layer()
@@ -664,10 +838,27 @@ def brokeracceptedrequests(request):
                 presentconnection.customer_status="order completed"
                 presentconnection.broker_status="request completed"
                 presentconnection.modified_time=timezone.now()
-                subject="Hurray! your order is completed"
-                body=f"makeiteasy helps it really helps"
-                receiverlist=[presentconnection.customer.user.email,]
-                # send_mail(subject,message=body,from_email=settings.EMAIL_HOST_USER,recipient_list=receiverlist,fail_silently=False)
+            subject = f"Your Connection with {presentconnection.broker.user.username} is Complete!"
+            message_body = f"""
+Hi {presentconnection.customer.user.username},
+
+Great news! Your connection regarding "{presentconnection.description}" with broker {presentconnection.broker.user.username} has been marked as completed.
+
+We hope you had a positive experience. You can view your completed orders here:
+{request.build_absolute_uri(reverse('app1:customer_completedorders'))}
+
+Consider leaving a review for {presentconnection.broker.user.username} to help other users.
+
+Thanks,
+The Workiteasy Team
+"""
+            send_mail(
+                subject,
+                message_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [presentconnection.customer.user.email,],
+                fail_silently=False
+            )
                 presentconnection.save()
                 # Send notification to customer
                 channel_layer = get_channel_layer()

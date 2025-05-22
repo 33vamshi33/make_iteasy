@@ -1,12 +1,41 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="jumbotron">
-  <h1 style="float: left;">Hey customer {{customer.username}} </h1>
-  
+<div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card text-white bg-warning mb-3">
+        <div class="card-header">New Unread Pending Orders</div>
+        <div class="card-body">
+          <h4 class="card-title">{{ new_pending_orders_count }}</h4>
+          <a href="{% url 'app1:customer_pendingorders' %}" class="text-white stretched-link">View Details</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-success mb-3">
+        <div class="card-header">Active Accepted Orders</div>
+        <div class="card-body">
+          <h4 class="card-title">{{ active_accepted_orders_count }}</h4>
+          <a href="{% url 'app1:customer_acceptedorders' %}" class="text-white stretched-link">View Details</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-info mb-3">
+        <div class="card-header">Completed Orders</div>
+        <div class="card-body">
+          <h4 class="card-title">{{ completed_orders_count }}</h4>
+          <a href="{% url 'app1:customer_completedorders' %}" class="text-white stretched-link">View Details</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <br><br><br>
-  <form action="" method="POST">
+  <div class="jumbotron py-4"> {# Reduced padding for the jumbotron #}
+    <h3 style="float: left;">Hey customer, {{ customer.username }}! Find a Broker:</h3>
+    <br style="clear:both;"><br>
+    <form action="" method="POST">
     {% csrf_token %}
     <label for="department" style="float: left;margin-left:10px;">department:</label>
     <input type="text" name="department" placeholder="Enter department" style="float: left;margin-left:10px;">
